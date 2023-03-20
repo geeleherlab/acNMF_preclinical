@@ -6,5 +6,5 @@ Here I provide scripts to run InferCNV and classification models on three datase
 The scripts perform on sample basis, results were saved to Output folder.
 
 Order of scripts: 
-1. InferCNV_<sample>.R
-2. Classification_<sample>.R
+1. InferCNV_\<sample\>.R
+2. Classification_\<sample\>.R
