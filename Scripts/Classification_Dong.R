@@ -244,6 +244,9 @@ for (sample in sample_ls){
     Prediction = rbind(glm_pred_manual, glm_pred_infercnv, glm_test_manual, glm_test_infercnv)
   )
   colnames(df) <- c("Sample", "Feature", "Celltype", "Prediction")
+  # write_csv(df, paste0("Figure/GLM_score_human_" sample, ".csv"), append = TRUE)
+
+  
   df$Celltype <- factor(df$Celltype, levels = c("MES-like", "Cancer", "Normal"))
   ggplot(df, aes(x = Feature, y = as.numeric(Prediction), fill = Celltype)) +
     geom_boxplot(outlier.size = 0.2, lwd=0.2) + 
