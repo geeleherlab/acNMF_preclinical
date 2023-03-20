@@ -5,6 +5,11 @@ Here I provide scripts to run InferCNV and classification models on three datase
 
 The scripts perform on sample basis, results were saved to Output folder.
 
-Order of scripts: 
-1. InferCNV_\<sample\>.R
-2. Classification_\<sample\>.R
+Order of scripts and output: 
+1. InferCNV_\<sample\>.R:
+  - reads cnmf RDS files, metadat file, and gene order file as input
+  - outputs cellname.RDS, preliminary InferCNV results, and InferCNV results with HMM
+2. Classification_\<sample\>.R:
+  - reads cellname.RDS, preliminary InferCNV results, and InferCNV results with HMM, cnmf RDS files, gene order file as input
+  - saves classification models and balanced accuracy on validation data
+  - plots boxplots of GLM scores on test data and validation data 
