@@ -231,6 +231,7 @@ PD46693 <- data.frame(
   Prediction = rbind(glm_pred_manual, glm_pred_infercnv, glm_test_manual, glm_test_infercnv)
 )
 colnames(PD46693) <- c("Sample", "Feature", "Celltype", "Prediction")
+# write_csv(df, "Figure/GLM_score_human_PD46693.csv"), append = TRUE)
 
 PD46693$Celltype <- factor(PD46693$Celltype, levels = c("MES-like", "Cancer", "Normal"))
 ggplot(PD46693, aes(x = Feature, y = as.numeric(Prediction), fill = Celltype)) +
