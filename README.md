@@ -13,3 +13,4 @@ Order of scripts and output:
   - reads cellname.RDS, preliminary InferCNV results, and InferCNV results with HMM, cnmf RDS files, gene order file as input
   - saves classification models and balanced accuracy on validation data
   - plots boxplots of GLM scores on test data and validation data 
+3. Accuracy_scatter.R
