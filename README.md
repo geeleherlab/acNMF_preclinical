@@ -4,3 +4,7 @@
 Here I provide scripts to run InferCNV and classification models on three datasets: GOSH (PD46693), Dong (T200, T214, T69, T230), and Mouse (NB831, NB837, NB839, NB847, NB849, NB853, NB856, NB883). 
 
 The scripts perform on sample basis, results were saved to Output folder.
+
+Order of scripts: 
+1. InferCNV_<sample>.R
+2. Classification_<sample>.R
