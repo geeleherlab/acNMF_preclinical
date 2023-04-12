@@ -1,3 +1,3 @@
 # acNMF
 Describes the acNMF method
-![alt text here](/images/acNMF_schematic.pdf)
+<img src="acNMF_schematic.pdf">
