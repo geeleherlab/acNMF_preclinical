@@ -1,0 +1,395 @@
+---
+title: "acNMF Method"
+author: "Rich Chapple"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting Started
+
+This notebook provides instructions on running acNMF starting with a (genes x cells) counts matrix of expression values.  In this example we will use simulated data from [Kotliar et. al, 2019](https://elifesciences.org/articles/43803), but a raw counts matrix is all that is needed to begin.  
+
+### Splitting Data
+
+The matrix must first be split into two roughly equal parts (referred to interchangeably as splits), such that approximately equal numbers of cells are contained in each split. 
+
+#### Load data and split
+```{r, message=F}
+library(Seurat)
+library(SeuratDisk)
+```
+
+```{r load, echo=T}
+set.seed(37645)
+data <- readRDS("cNMF_simulated.RDS")
+data <- as.data.frame(data)
+dim(data)
+```
+
+```{r split}
+dummy_sep <- rbinom(nrow(data), 1, 0.5)
+split0 <- data[dummy_sep == 0, ]
+split1 <- data[dummy_sep == 1, ]
+
+dim(split0)
+dim(split1)
+```
+
+#### Convert to H5AD
+```{r convert, echo=T, eval=F}
+split0 <- t(as.matrix(split0))
+split1 <- t(as.matrix(split1))
+
+s0 <- CreateSeuratObject(counts = split0)
+s1 <- CreateSeuratObject(counts = split1)
+
+SaveH5Seurat(s0, filename = "cnmf_input_benchmark_split0.h5Seurat")
+SaveH5Seurat(s1, filename = "cnmf_input_benchmark_split1.h5Seurat")
+
+Convert("cnmf_input_benchmark_split0.h5Seurat", dest = "h5ad", assay = "RNA")
+Convert("cnmf_input_benchmark_split1.h5Seurat", dest = "h5ad", assay = "RNA")
+```
+
+
+## Running cNMF on Individual Splits
+
+Run [cNMF](https://github.com/dylkot/cNMF) on each file generated above.  This needs to be performed over a range of ranks.  The following python code was used on split0.
+
+```{python cnmf, eval=F}
+import csv
+import os
+import pandas as pd
+import numpy as np
+from scipy.io import mmread
+import scipy.sparse as sp
+import matplotlib.pyplot as plt
+import scanpy as sc
+from IPython.display import Image
+
+np.random.seed(14)
+
+########################
+#Set cNMF run parameters
+########################
+
+numiter = 200
+numhvgenes = 2000
+
+K = ' '.join([str(i) for i in range(2,61)] + [str(i) for i in range(70,210,10)])
+K_int = [int(i) for i in K.split()]
+
+numworkers = numiter*len(K_int)
+
+output_directory = "/<path>/<to>/<output_dir>/"
+run_name = 'cNMF_split0'
+
+countfn = "cnmf_input_benchmark_split0.h5ad"
+
+seed = 14
+
+###############################
+#Set up directories for LSF i/o
+###############################
+
+logdir = os.getcwd() + '/split0_logdir'
+os.system('mkdir ' + logdir)
+factorize_dir = logdir + '/factorize'
+os.system('mkdir ' + factorize_dir)
+combine_dir = logdir + '/combine'
+os.system('mkdir ' + combine_dir)
+consensus_dir = logdir + '/consensus'
+os.system('mkdir ' + consensus_dir)
+
+##############
+#Preprocessing
+##############
+
+prepare_cmd = 'python /home/rchapple/software/cNMF/cnmf_v2.0.py prepare --output-dir %s --name %s -c %s -k %s --n-iter %d --total-workers %d --seed %d --numgenes %d --beta-loss frobenius' % (output_directory, run_name, countfn, K, numiter, numworkers, seed, numhvgenes)
+print('Prepare command assuming parallelization with %d tasks:\n%s' % (numworkers, prepare_cmd))
+os.system(prepare_cmd)
+
+##############
+#Factorization
+##############
+
+worker_index = ' '.join([str(x) for x in range(numworkers)])
+
+#Set up the job submission array
+#Each job runs all iterations of NMF for each rank in one instance of opening the cNMF_v2.0.py script
+#The number of jobs that get submitted to HPC are equivalent to the number of ranks
+
+start = [int(i) for i in range(0, numworkers-1, numiter)]
+end = [int(i) for i in range(numiter-1, numworkers, numiter)]
+nmf_job_data = {'K':pd.Series(K_int), 'Start':pd.Series(start), 'End':pd.Series(end)}
+nmf_job_submission = pd.DataFrame(nmf_job_data)
+
+for x in nmf_job_submission.index:
+    factorize_cmd = "bsub -P RC -J split0_factorize -R \"span[hosts=1] rusage[mem=10GB]\" -oo %s -eo %s 'python /home/rchapple/software/cNMF/cnmf_v2.0.py factorize --output-dir %s --name %s --jobstart %d --jobend %d'" % (factorize_dir, factorize_dir, output_directory, run_name, nmf_job_submission['Start'][x], nmf_job_submission['End'][x])
+    print('Factorize command to run factorizations for rank = %d across all iterations' % (nmf_job_submission['K'][x]))
+    os.system(factorize_cmd)
+
+wait = "bwait -w 'ended(split0_factorize)'"
+os.system(wait)
+
+#################################
+#Combine factorization replicates
+#################################
+
+combine_cmd = "bsub -P RC -J split0_combine -R\"rusage[mem=400GB]\" -q large_mem -oo %s -eo %s 'python /home/rchapple/software/cNMF/cnmf_v2.0.py combine --output-dir %s --name %s'" % (combine_dir, combine_dir, output_directory, run_name)
+print(combine_cmd)
+print('\n')
+os.system(combine_cmd)
+
+wait_combine = "bwait -w 'ended(split0_combine)'"
+os.system(wait_combine)
+
+
+##########################################################
+#Cluster and plot consensus programs and KNN outlier plots
+##########################################################
+
+from itertools import chain
+
+density_threshold = 2.00
+
+for x in chain(range(2,61), range(70,210,10)):
+    selected_K = x
+    print("Selected_K =", selected_K, "\n")
+    consensus_cmd = "bsub -P RC -J split0_consensus -R\"rusage[mem=400GB]\" -q large_mem -oo %s -eo %s 'python /home/rchapple/software/cNMF/cnmf_v2.0.py consensus --output-dir %s --name %s --local-density-threshold %.2f --components %d --show-clustering'" % (consensus_dir, consensus_dir, output_directory, run_name, density_threshold, selected_K)
+    print('Consensus command for K=%d:\n%s' % (selected_K, consensus_cmd))
+    os.system(consensus_cmd)
+
+density_threshold_str = ('%.2f' % density_threshold).replace('.', '_')
+
+#Outlier filtering
+
+density_threshold = 0.10                                                        
+
+for x in chain(range(2,61), range(70,210,10)):                                                       
+    selected_K = x                                                              
+    print("Selected_K =", selected_K, "\n")                                     
+    consensus_cmd = "bsub -P RC -J split0_consensus_outlier -R\"rusage[mem=400GB]\" -q large_mem -oo %s -eo %s 'python /home/rchapple/software/cNMF/cnmf_v2.0.py consensus --output-dir %s --name %s --local-density-threshold %.2f --components %d --show-clustering'" % (consensus_dir, consensus_dir, output_directory, run_name, density_threshold, selected_K)
+    print('Consensus command for K=%d:\n%s' % (selected_K, consensus_cmd)) 
+    os.system(consensus_cmd)
+                                                        
+density_threshold_str = ('%.2f' % density_threshold).replace('.', '_')
+```
+
+## Post-cNMF Comparison of Each Data Split
+
+Next, we evaluate (for each rank) the similarity of the two data splits.  The Jaccard similarity index is calculated, and significant GEPs between the splits are represented as node pairs in a network graph.  Community detection on the underlying graph is calculated, and recorded.
+
+#### SplitStats function
+```{r calcSplitStats, eval=F}
+library(jaccard)
+library(igraph)
+library(vroom)
+
+set.seed(1234)
+
+#This function computes the Jaccard index and significance test for all programs in each benchmark split
+#Once this is completed, a network graph is built using igraph package
+#Community detection of the network graph is then calculated using betweeness scores
+
+calcSplitStats <- function(split0, split1, k, jval){
+    print("calcSplitStats")
+    # for each row of split0, compare it to every row of split1
+    jaccardInd <- numeric()
+    jaccardIndPs <- numeric()
+    
+    for(i in 1:ncol(split0)){
+        for(j in 1:ncol(split1)){
+            GEP_split0 = as.numeric(rank(-split0[, i]) < jval)
+            GEP_split1 = as.numeric(rank(-split1[, j]) < jval)
+            jaccardTest <- jaccard.test.mca(GEP_split0, GEP_split1)
+            jaccardInd <- c(jaccardInd, jaccardTest$statistics)
+            jaccardIndPs <- c(jaccardIndPs, jaccardTest$pvalue)
+        }
+    }
+  
+    # Calculate FWERs
+    k <- as.numeric(k) 
+    fwerJaccard <- p.adjust(jaccardIndPs, method="bonferroni")
+    fwerJaccard <- t(matrix(fwerJaccard, nrow = k, ncol = k))
+  
+    # Calculate number of significant findings.
+    sigFwerJaccard <- which(fwerJaccard < 0.05, arr.ind = T)
+  
+    #Calculate community number
+    if(nrow(sigFwerJaccard) > 0){
+        community.df <- as.data.frame(sigFwerJaccard)
+        community.df$row <- paste0("Split0_GEP", community.df$row)
+        community.df$col <- paste0("Split1_GEP", community.df$col)
+        community.graph <- graph_from_data_frame(community.df, directed = F)
+        ceb <- cluster_edge_betweenness(community.graph)
+        community_number <- length(communities(ceb))
+    }else{
+        community_number <- 0
+    }
+    return(list(jaccardIndPs=jaccardIndPs, jaccardInd=jaccardInd, sigFwerJaccard=sigFwerJaccard, jaccard.com=community_number))
+}
+```
+
+#### Calculating Jaccard similarity index for a range of Jaccard values
+
+```{r Jaccard, eval=F}
+ranks = c(seq(2,60), seq(70,200,10))
+data.dir <- "/<path>/<to>/<cNMF_output>"
+jaccard.val <- seq(10,100,10)
+
+for(k in ranks){
+  #Results list
+  #Gets written to RDS file at end of R script
+  jaccardtest_results <- list()
+
+  #Read in NMF gene spectra scores  
+  print(paste0("Rank: ", k))
+  split0 <- t(vroom(file = paste0(data.dir, "cNMF_split0/cNMF_split0.gene_spectra_score.k_", k, ".dt_0_10.txt"), col_select = c(-...1), show_col_types = FALSE))
+  split1 <- t(vroom(file = paste0(data.dir, "cNMF_split1/cNMF_split1.gene_spectra_score.k_", k, ".dt_0_10.txt"), col_select = c(-...1), show_col_types = FALSE))
+  
+#Compute jaccard index for different jaccard lengths
+  for(jval in jaccard.val){
+      print(paste0("Jaccard Length: ", jval))
+      splitstatlist <- list()
+      splitstatlist <- calcSplitStats(split0, split1, k, jval) 
+      jval.name <- as.character(jval)
+      jaccardtest_results[[jval.name]] <- splitstatlist
+  }      
+  
+  #This list contains the computations across all jaccard lengths for the rank provided on the command line
+  saveRDS(jaccardtest_results, file = paste0("jaccardtest_results_K", k, ".RDS"))
+}
+```
+
+
+## Plotting Results
+
+```{r simplotload, eval=F}
+library(ggplot2)
+library(dplyr)
+
+simdata.dir <- "/<path>/<to>/<jaccardtest_results>/"
+sim.df <- NULL
+
+jaccardtest_results <- list()
+
+for(k in ranks){
+  splitstats <- readRDS(file = paste0(simdata.dir, seed, "/results/jaccardtest_results_K", k, ".RDS"))
+  jaccardtest_results[[k]] <- splitstats
+}
+
+jaccard.val <- as.character(jaccard.val)
+
+#for plotting
+com.df <- NULL
+
+for(x in ranks){
+  u <- NULL
+  for(y in jaccard.val){
+    u <- c(u, jaccardtest_results[[x]][[y]][["jaccard.com"]]) 
+  }
+  u <- cbind(u, x)
+  u <- data.frame(u, jaccard.val)
+  com.df <- rbind(com.df, u)
+}
+    
+colnames(com.df) <- c("Community_Number", "Rank", "Jaccard_Length")
+
+#rank on x axis
+com.df$Rank <- as.integer(com.df$Rank)
+com.df$Jaccard_Length <- as.character(com.df$Jaccard_Length)
+com.df$Jaccard_Length <- factor(com.df$Jaccard_Length, levels = c("10", "20", "30", "40", "50", "60", "70", "80", "90", "100"))
+
+
+sim_plot <- ggplot(com.df, aes(x=Rank,y=Community_Number, group = Jaccard_Length, color = Jaccard_Length)) +
+                stat_smooth(method="loess", span=0.2, se=TRUE, aes(fill=Jaccard_Length), alpha=0.3) +
+                theme_linedraw()
+```
+
+```{r loadplot, include=F}
+sim_plot = readRDS("simplot.RDS")
+```
+
+```{r plot}
+sim_plot
+```
+
+This block of code evaluates which curve has the best inflection point
+```{r elbow, eval=F}
+devtools::install_github("ahasverus/elbow")
+library(elbow)
+
+jl.eval <- data.frame()
+  
+for(x in jaccard.val){
+  x <- as.numeric(x)  
+  jl.df <- com.df %>% filter(Jaccard_Length == x)
+  #Run a loess regression on JL data to smooth the curve
+  sl <- jl.df %>% ggplot(aes(Rank, Community_Number)) 
+                      + geom_point() 
+                      + geom_smooth(method = "loess", span = 0.3, method.args = list(degree = 1))
+  gbuild <- ggplot_build(sl)
+  elbow.df <- data.frame(X = gbuild$data[[2]]$x, Y = gbuild$data[[2]]$y)
+  #Find inflection point
+  ipoint <- elbow(data = elbow.df, plot = F)
+  #Since the data was run on smoothed data, retreive the closest rank to the x intercept calculated by elbow package
+  optimum.rank <- ranks[which.min(abs(ranks - ipoint$X_selected))]
+  #Run linear regression on cost values (X values after inflection point) and determine slope
+  ipoint.filtered <- ipoint$data %>% filter(X >= ipoint$X_selected)
+  reg <- lm(ipoint.filtered$benefits ~ ipoint.filtered$X)
+  jl.eval <- rbind(jl.eval, c(x, optimum.rank, reg$coefficients[2]))
+}
+```
+
+The following plots were generated when the Jaccard length was set to 10
+```{r loadplots, include=F}
+library(elbow)
+sl = readRDS('sl.RDS')
+elbow.df = readRDS('elbow.df.RDS')
+```
+
+```{r plots, warning=F}
+sl
+elbow(data=elbow.df)
+```
+
+This programmatically determines the most optimal parameters (rank and Jaccard length) for the dataset
+```{r optimize, eval=F}
+colnames(jl.eval) <- c("JL", "Rank", "Slope")
+#This will determine which JL curve gives the steepest slope for the cost values
+max.slope.params <- jl.eval %>% filter(JL == jl.eval$JL[jl.eval$Slope == min(jl.eval$Slope)])
+comnum <- com.df %>% filter(Jaccard_Length == max.slope.params$JL & Rank == max.slope.params$Rank)
+params <- as.data.frame(cbind(comnum$Community_Number, max.slope.params$Rank, max.slope.params$JL))
+colnames(params) <- c("Community_Number", "Rank", "Jaccard_Length")
+  
+optimized.community.params[[<dataset.name>]] <- params   
+  
+#Get the significant matches(indeces) from the Jaccard test
+  
+sig.labels <- as.data.frame(jaccardtest_results[[params$Rank]][[as.character(params$Jaccard_Length)]]$sigFwerJaccard)
+sig.labels$row <- paste0("Split0_GEP", sig.labels$row)
+sig.labels$col <- paste0("Split1_GEP", sig.labels$col)
+com.labels[[<dataset.name>] <- sig.labels
+
+saveRDS(optimized.community.params, file = "optimized_community_paramters.RDS")
+saveRDS(com.labels, file = "community_labels.RDS")
+```
+
+```{r optparams, include=F}
+optimized_community_parameters <- readRDS('ocp.RDS')
+com.labels <- readRDS('com.labels.RDS')
+```
+
+Optimal parameters
+```{r optparamshow}
+optimized_community_parameters
+```
+
+Significant pairs of replicated GEPs across the splits
+```{r sigpairs}
+com.labels
+```
