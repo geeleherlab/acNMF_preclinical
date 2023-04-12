@@ -1,5 +1,5 @@
 ---
-title: "acNMF Method"
+title: "acNMF Method (v1.0.0)"
 author: "Rich Chapple"
 date: "`r Sys.Date()`"
 output: html_document
