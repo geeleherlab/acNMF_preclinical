@@ -1,4 +1,5 @@
 # acNMF
-Describes the acNMF method
+This repository describes the acNMF method
 <br>
-![](images/acNMF_schematic.pdf)
+![](images/acNMF_schematic.png)
+
