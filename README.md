@@ -4,7 +4,7 @@ This repository describes the acNMF method, along with supporting code for subse
 ![Alt Text](images/acNMF_schematic.png)
 
 ## acNMF Method
-acNMF has the following steps<br><br>
+A jupyter notebook of the generic method with detailed instructions can be found [here](rchapple2.github.io/acNMF/)<br><br>
 
 ## acNMF on Simulated Data
 The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder <br><br>
