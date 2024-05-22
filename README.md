@@ -24,8 +24,11 @@ The scripts to reproduce these analysis are found in the Post-acNMF Analysis fol
 ### GEP Reports
 **literatureCuratedGenes.R** Contains all gene sets to which each gene expression program is compared.  Although this file was generated from the neuroblastoma literature, this file can be modified to include any gene set from any domain. <br>
 **commonCodeForSummaries.R** This file loads all the data that is ubiquitously required for each GEP report.<br>
-**gepSummaryKnitr.R** This file contains all of the Knitr code to generate the HTML report including all interactive figures, statistics, and gene set comparisons.<br>
+**gepSummaryKnitr.R** This file contains all of the Knitr code to generate the HTML report including all interactive figures, statistics, and gene set comparisons.<br><br>
 To generate the reports: 
+```{r, message=F}
+Rscript scriptToKnitAllPrograms.R
+```
 
 
 ### Shiny App
