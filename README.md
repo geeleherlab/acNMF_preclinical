@@ -16,8 +16,9 @@ The scripts to reproduce the acNMF analysis on simulated data can be found in th
 ## acNMF on Neuroblastoma scRNA-seq Datasets
 The scripts to reproduce this analysis are found in the acNMF Method folder. <br><br>
 **input_processing.R** This code is representative of the processing required for a single dataset to become compatable for acNMF.  This code was performed on each dataset in our analysis separately.<br>
-**cnmf_splitrun.py** This code is used to run [cNMF](https://github.com/dylkot/cNMF/tree/master) on each data split generated from the input_processing.R script.
-**
+**cnmf_splitrun.py** This code is used to run [cNMF](https://github.com/dylkot/cNMF/tree/master) on each data split generated from the input_processing.R script.<br>
+**post_cNMF_analysis.R**  This script calculates the Jaccard index on the cNMF output, plots the results across all ranks, and chooses the most appropriate rank for each dataset. <br>
+**cNMF_meta_analysis.R**  This script is used to generate the network graph in which similar gene expression programs from independent datasets are represented as interconnected nodes in the network.<br> 
 
 ## Post-acNMF Analyses
 The scripts to reproduce these analysis are found in the Post-acNMF Analysis folder. <br><br>
