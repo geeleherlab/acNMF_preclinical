@@ -12,7 +12,7 @@ The scripts to reproduce the acNMF analysis on simulated data can be found in th
 
 ## Post-acNMF Analyses
 The scripts to reproduce these analysis are found in the Post-acNMF Analysis folder. <br><br>
-**inferCNV.R** Conducts inferCNV analysis using a pre-defined reference and the subclustering module.<br>   
+**inferCNV.R** Conducts inferCNV analysis using a pre-defined reference and the subclustering module. <br>   
 **DESeq2.R** Performs DESeq2 and GSEA on pseudobulked mouse scRNA-seq dataset. <br>
 **velocyto.bsub and scvelo.py** Creates loom file and performs RNA velocity analysis, respectively. <br>
 **Monocle.R** Calculates pseudotime trajectory plot for mouse dataset. <br>
