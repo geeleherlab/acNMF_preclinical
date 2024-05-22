@@ -15,7 +15,7 @@ The scripts to reproduce the acNMF analysis on simulated data can be found in th
 
 ## acNMF on Neuroblastoma scRNA-seq Datasets
 The scripts to reproduce this analysis are found in the acNMF Method folder. <br><br>
-**input_processing.R**
+**input_processing.R** This code is representative of the processing required for a single dataset to become compatable for acNMF.  This code was performed on each dataset in our analysis separately.<br>
 **
 
 ## Post-acNMF Analyses
