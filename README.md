@@ -14,7 +14,8 @@ The scripts to reproduce the acNMF analysis on simulated data can be found in th
 **acNMF_output.R** Calculates Jaccard Similarity and plots results<br>
 
 ## acNMF on Neuroblastoma scRNA-seq Datasets
-The scripts to reproduce this analysis are found in the NB folder. <br><br>
+The scripts to reproduce this analysis are found in the acNMF Method folder. <br><br>
+**input_processing.R**
 **
 
 ## Post-acNMF Analyses
