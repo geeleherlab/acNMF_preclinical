@@ -78,13 +78,13 @@ for(k in ranks){
 library(ggplot2)
 library(dplyr)
 
-simdata.dir <- "/<path>/<to>/<jaccardtest_results>/"
-sim.df <- NULL
+data.dir <- "/<path>/<to>/<jaccardtest_results>/"
+data.df <- NULL
 
 jaccardtest_results <- list()
 
 for(k in ranks){
-  splitstats <- readRDS(file = paste0(simdata.dir, seed, "/results/jaccardtest_results_K", k, ".RDS"))
+  splitstats <- readRDS(file = paste0(data.dir, seed, "/results/jaccardtest_results_K", k, ".RDS"))
   jaccardtest_results[[k]] <- splitstats
 }
 
@@ -111,7 +111,7 @@ com.df$Jaccard_Length <- as.character(com.df$Jaccard_Length)
 com.df$Jaccard_Length <- factor(com.df$Jaccard_Length, levels = c("10", "20", "30", "40", "50", "60", "70", "80", "90", "100"))
 
 
-sim_plot <- ggplot(com.df, aes(x=Rank,y=Community_Number, group = Jaccard_Length, color = Jaccard_Length)) +
+plot <- ggplot(com.df, aes(x=Rank,y=Community_Number, group = Jaccard_Length, color = Jaccard_Length)) +
                 stat_smooth(method="loess", span=0.2, se=TRUE, aes(fill=Jaccard_Length), alpha=0.3) +
                 theme_linedraw()
-sim_plot
+plot
