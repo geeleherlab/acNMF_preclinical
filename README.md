@@ -3,6 +3,9 @@ This repository describes the acNMF method, along with supporting code for subse
 <br><br>
 ![Alt Text](images/acNMF_schematic.png)
 
+## acNMF Method
+acNMF has the following steps<br><br>
+
 ## acNMF on Simulated Data
 The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder <br><br>
 **Simulate.ipynb** Jupyter notebook modified from [cNMF publication](https://github.com/dylkot/cNMF/blob/master/Tutorials/analyze_simulated_example_data.ipynb)<br>
@@ -18,3 +21,11 @@ The scripts to reproduce these analysis are found in the Post-acNMF Analysis fol
 **Monocle.R** Calculates pseudotime trajectory plot for mouse dataset.<br>
 
 ## Scripts for Shiny App and Accompanying Gene Expression Progam Reports
+### GEP Reports
+**literatureCuratedGenes.R** Contains all gene sets to which each gene expression program is compared.  Although this file was generated from the neuroblastoma literature, this file can be modified to include any gene set from any domain. <br>
+**commonCodeForSummaries.R** This file loads all the data that is ubiquitously required for each GEP report.<br>
+**gepSummaryKnitr.R** This file contains all of the Knitr code to generate the HTML report including all interactive figures, statistics, and gene set comparisons.<br>
+To generate the reports: 
+
+
+### Shiny App
