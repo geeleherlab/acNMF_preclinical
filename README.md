@@ -4,7 +4,7 @@ This repository describes the acNMF method, along with supporting code for subse
 ![Alt Text](images/acNMF_schematic.png)
 
 ## acNMF Method
-A jupyter notebook of the generic method with detailed instructions can be found at rchapple2.github.io/acNMF/.<br><br>
+A notebook of the generic method with detailed instructions can be found at rchapple2.github.io/acNMF/.<br><br>
 
 ## acNMF on Simulated Data
 The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder <br><br>
@@ -12,6 +12,10 @@ The scripts to reproduce the acNMF analysis on simulated data can be found in th
 **acNMF_input.R** Convert file into acNMF compatable format<br>
 **cNMF_runscript and cnmf_v2.0.py** Modified [cNMF](https://github.com/dylkot/cNMF/tree/master) code that enables faster runtimes on HPC environments<br>
 **acNMF_output.R** Calculates Jaccard Similarity and plots results<br>
+
+## acNMF on Neuroblastoma scRNA-seq Datasets
+The scripts to reproduce this analysis are found in the NB folder. <br><br>
+**
 
 ## Post-acNMF Analyses
 The scripts to reproduce these analysis are found in the Post-acNMF Analysis folder. <br><br>
