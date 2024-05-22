@@ -28,7 +28,7 @@ The scripts to reproduce these analysis are found in the Post-acNMF Analysis fol
 **Monocle.R** Calculates pseudotime trajectory plot for mouse dataset.<br>
 
 ## Scripts for Shiny App and Accompanying Gene Expression Progam Reports
-The scripts for the Shiny App and GEP reports are found in the Reports folder<br><br>
+The scripts for the Shiny App and GEP reports are found in the Reports folder.<br><br>
 ### GEP Reports
 **literatureCuratedGenes.R** Contains all gene sets to which each gene expression program is compared.  Although this file was generated from the neuroblastoma literature, this file can be modified to include any gene set from any domain. <br>
 **commonCodeForSummaries.R** This file loads all the data that is ubiquitously required for each GEP report.<br>
