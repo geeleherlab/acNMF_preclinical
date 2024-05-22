@@ -381,3 +381,112 @@ for(i in 1:ncol(pairwise.comb)){
 }
 
 saveRDS(connectivities, 'connectivities.RDS')
+
+####################################
+#Construct and visualize the network
+#Relevant to Figure 4
+####################################
+
+#iGRAPH
+set.seed(1234)
+library(igraph)
+library(RColorBrewer)
+
+meta.graph <- graph_from_data_frame(connectivities, directed = F)
+simplify(meta.graph)
+edges <- E(meta.graph)
+vertices <- as.character(names(V(meta.graph)))
+
+#Weights
+edge.width <- 1/(connectivities$pval.adj + 0.1)
+
+#Degree Centrality
+meta.degree <- degree(meta.graph, v = vertices, mode = "total")
+
+layout <- layout_with_fr(meta.graph, niter = 5000)
+
+#Plot based on database
+
+#Node colors
+h.col <- brewer.pal(n = 6, name = "Blues")
+
+vcol.db <- NULL
+for(i in 1:length(vertices)){
+  if(startsWith(vertices[i], "Kildisiute_GOSH")){
+    vcol.db[i] <- h.col[2]
+  }else if(startsWith(vertices[i], "Kildisiute_PMC")){
+    vcol.db[i] <- h.col[3]
+  }else if(startsWith(vertices[i], "GSE137804")){
+    vcol.db[i] <- h.col[4]
+  }else if(startsWith(vertices[i], "Jansky")){
+    vcol.db[i] <- h.col[5]
+  }else if(startsWith(vertices[i], "Kameneva")){
+    vcol.db[i] <- h.col[6]
+  }else if(startsWith(vertices[i], "NB_cell_line")){
+    vcol.db[i] <- "#CC0000"
+  }else if(startsWith(vertices[i], "mouse")){
+    vcol.db[i] <- "#FDCC0D"
+  }else if(startsWith(vertices[i], "PDX_Human")){
+    vcol.db[i] <- "#336600"
+  }else if(startsWith(vertices[i], "PDX_Mouse")){
+    vcol.db[i] <- "#00CC99"
+  }
+}
+#saveRDS(meta.graph, file = "/Users/rchapple/Desktop/pearson/meta.graph.RDS")
+#saveRDS(layout, file = "/Users/rchapple/Desktop/pearson/layout.RDS")
+
+plot(meta.graph,
+     edge.width = edge.width/10,
+     vertex.label = NA, 
+     vertex.size = sqrt(meta.degree)*3,
+     vertex.frame.color = NA,
+     vertex.label.family = "Helvetica",
+     vertex.color = vcol.db,
+     layout = layout
+)
+
+#all pairwise legend
+legend('topleft', legend = c("Kildisiute_GOSH", "Kildisiute_PMC", "GSE137804", "Jansky", "Kameneva", "NB_cell_line", "Mouse", "PDX_Human", "PDX_Mouse"), 
+       pt.bg = c(h.col[2], h.col[3], h.col[4], h.col[5], h.col[6], "#CC0000", "#FDCC0D", "#336600", "#00CC99"), 
+       pt.cex = 1, col = 'black', pch = 21)
+
+dev.off()
+
+########################
+#Plot based on community
+#######################
+
+#Community detection via cluster walktrap
+wt <- cluster_walktrap(meta.graph, weights = E(meta.graph)$weight, steps = 50)
+wt.communities <- communities(wt)
+wt.membership <- membership(wt)
+V(meta.graph)$community <- wt.membership
+
+
+length(wt.communities)
+[1] 19
+
+vcol.mark <- adjustcolor(rainbow(length(wt.communities)), alpha.f = 0.1)
+vcol <- adjustcolor(rainbow(length(wt.communities)), alpha.f = 0.7)
+
+#plot based on community
+plot(wt, meta.graph,
+     layout = layout,
+     col = vcol[V(meta.graph)$community],
+     edge.width = edge.width/10,
+     vertex.label = NA, 
+     vertex.size = sqrt(meta.degree)*3,
+     vertex.frame.color = NA,
+     vertex.label.family = "Helvetica",
+     mark.col = vcol.mark,
+     mark.border = NA,
+     edge.color = "gray")
+
+legend('topleft', legend = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"), 
+       pt.bg = vcol, pt.cex = 2, 
+       col = NA, pch = 21)
+
+dev.off()
+
+
+
