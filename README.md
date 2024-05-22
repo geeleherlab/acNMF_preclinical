@@ -4,6 +4,8 @@ This repository describes the acNMF method, along with supporting code for subse
 ![Alt Text](images/acNMF_schematic.png)
 
 ## acNMF on Simulated Data
+The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder
+**Simulate.ipynb** Jupyter notebook modified  
 
 ## Post-acNMF Analyses
 ### RNA Velocity
