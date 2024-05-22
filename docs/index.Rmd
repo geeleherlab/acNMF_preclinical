@@ -30,6 +30,7 @@ data <- as.data.frame(data)
 dim(data)
 ```
 
+Randomly sample (with substitution) to generate a binary vector, and then subset the original data into two splits.
 ```{r split}
 dummy_sep <- rbinom(nrow(data), 1, 0.5)
 split0 <- data[dummy_sep == 0, ]
