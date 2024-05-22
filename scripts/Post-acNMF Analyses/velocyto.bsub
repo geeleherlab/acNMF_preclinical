@@ -1,0 +1,11 @@
+#To use this script type bsub < velocyto.bsub on HPC enviroment
+
+#!/bin/bash
+
+#BSUB -P RC 
+#BSUB -J RC_velocyto
+#BSUB -R "rusage[mem=100000]" 
+#BSUB -oo velocyto_NB831.out 
+#BSUB -eo velocyto_NB831.err
+
+velocyto run -b barcodes.tsv -@ 8 -o NB831 /home/rchapple/rnavelocity/mouse/NB831/200803_NB501822_0241_AH7TFTBGXG/NB831/outs/possorted_genome_bam.bam  /home/rchapple/annotation/gencode.vM23.annotation.gtf
