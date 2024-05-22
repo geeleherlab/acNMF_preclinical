@@ -377,6 +377,7 @@ data &lt;- readRDS(&quot;cNMF_simulated.RDS&quot;)
 data &lt;- as.data.frame(data)
 dim(data)</code></pre>
 <pre><code>## [1] 15000 25000</code></pre>
+<p>Randomly sample (with substitution) to generate a binary vector, then subset the original data to obtain two roughly equal splits.</p>
 <pre class="r"><code>dummy_sep &lt;- rbinom(nrow(data), 1, 0.5)
 split0 &lt;- data[dummy_sep == 0, ]
 split1 &lt;- data[dummy_sep == 1, ]
