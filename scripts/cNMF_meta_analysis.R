@@ -193,12 +193,9 @@ for(dat in dataset.names){
         mean.df.temp <- NULL
         mean.df.temp2 <- NULL
         if(length(s0) == 1){
-            #print("Length Split0 = 1")
             if(length(s1) == 1){
-                #print("Length Split1 = 1")
                 community_vectors[[i]] <- rowMeans(cbind(split0[, s0], split1[, s1]), na.rm = T)
             }else{
-                #print("Length Split1 > 1")
                 for(j in s1){
                     mean.df.temp <- cbind(mean.df.temp, split1[, j])
                 }
@@ -206,15 +203,12 @@ for(dat in dataset.names){
                 community_vectors[[i]] <- rowMeans(cbind(split0[, s0], mean.df.temp), na.rm = T)
             }
         }else if(length(s1) == 1){
-            #print("Length Split0 > 1")
-            #print("Length Split1 = 1")
             for(j in s0){
                 mean.df.temp <- cbind(mean.df.temp, split0[, j])
             }
             mean.df.temp <- rowMeans(mean.df.temp, na.rm = T)
             community_vectors[[i]] <- rowMeans(cbind(mean.df.temp, split1[, s1]), na.rm = T)
         }else{
-            #print("Length Split1 > 1")
             for(j in s0){
                 mean.df.temp <- cbind(mean.df.temp, split0[, j])
             }
