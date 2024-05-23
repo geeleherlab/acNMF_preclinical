@@ -6,15 +6,20 @@ This repository describes the acNMF method, along with supporting code for subse
 ## acNMF Method
 A notebook of the generic method with detailed instructions can be found at rchapple2.github.io/acNMF/.<br><br>
 
+i) The first step of the acNMF method is to perform a random split of counts x cells single cell gene expression matrix to obtain two roughly equal datasets.<br>
+ii) Second, [cNMF](https://github.com/dylkot/cNMF/tree/master) is performed over a wide range of ranks on each of these independent data splits. <br>
+iii) Graph therory is next used to identify similar latent factors generated in each cNMF analysis. For each rank, jaccard similarity scores across many jaccard lenghts are calculated between the two datasets, and if statistical significance is reached they are represented as node pairs in the network.  Community detection algorithms then identify groups/pairs of interconnected nodes and are recorded.<br>
+iv) Finally, the results are plotted across all ranks and jaccard lengths.  Inflection point detection of stable curves identify the most suitable rank and jaccard length for that particular dataset.<br>
+
 ## acNMF on Simulated Data
-The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder <br><br>
+The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder.  These should be run in the following order. <br><br>
 **Simulate.ipynb** Jupyter notebook modified from [cNMF publication](https://github.com/dylkot/cNMF/blob/master/Tutorials/analyze_simulated_example_data.ipynb)<br>
 **acNMF_input.R** Convert file into acNMF compatable format<br>
 **cNMF_runscript and cnmf_v2.0.py** Modified [cNMF](https://github.com/dylkot/cNMF/tree/master) code that enables faster runtimes on HPC environments<br>
 **acNMF_output.R** Calculates Jaccard Similarity and plots results<br>
 
 ## acNMF on Neuroblastoma scRNA-seq Datasets
-The scripts to reproduce this analysis are found in the acNMF Method folder. <br><br>
+The scripts to reproduce this analysis are found in the acNMF Method folder, and should be run in the following order.<br><br>
 **input_processing.R** This code is representative of the processing required for a single dataset to become compatable for acNMF.  This code was performed on each dataset in our analysis separately.<br>
 **cnmf_splitrun.py** This code is used to run [cNMF](https://github.com/dylkot/cNMF/tree/master) on each data split generated from the input_processing.R script.<br>
 **post_cNMF_analysis.R**  This script calculates the Jaccard index on the cNMF output, plots the results across all ranks, and chooses the most appropriate rank for each dataset. <br>
