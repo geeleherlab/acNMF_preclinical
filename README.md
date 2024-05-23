@@ -44,5 +44,5 @@ Rscript scriptToKnitAllPrograms.R
 ```
 
 ### Shiny App
-**navbarpage_srcdata.R** This file is needed to create the metadata tables and additional figures that are included in the NB_meta_shiny app.
+**navbarpage_srcdata.R** This file is needed to create the metadata tables and additional figures that are included in the NB_meta_shiny app.<br>
 **NB_meta_analysis_Shiny_app.R** Generates the Shiny app.
