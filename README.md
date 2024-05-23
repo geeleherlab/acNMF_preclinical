@@ -8,7 +8,7 @@ A notebook of the generic method with detailed instructions can be found at rcha
 
 i) The first step of the acNMF method is to perform a random split of counts x cells single cell gene expression matrix to obtain two roughly equal datasets.<br>
 ii) Second, [cNMF](https://github.com/dylkot/cNMF/tree/master) is performed over a wide range of ranks on each of these independent data splits. <br>
-iii) Graph therory is next used to identify similar latent factors generated in each cNMF analysis. For each rank, jaccard similarity scores across many jaccard lenghts are calculated between the two datasets, and if statistical significance is reached they are represented as node pairs in the network.  Community detection algorithms then identify groups/pairs of interconnected nodes and are recorded.<br>
+iii) Graph therory is next used to identify similar latent factors generated in each cNMF analysis. For each rank, jaccard similarity scores across many jaccard lengths are calculated between the two datasets, and if statistical significance is reached they are represented as node pairs in the network.  Community detection algorithms then identify groups/pairs of interconnected nodes and are recorded.<br>
 iv) Finally, the results are plotted across all ranks and jaccard lengths.  Inflection point detection of stable curves identify the most suitable rank and jaccard length for that particular dataset.<br>
 
 ## acNMF on Simulated Data
