@@ -13,7 +13,7 @@ iv) Finally, the results are plotted across all ranks and jaccard lengths.  Infl
 
 ## acNMF on Simulated Data
 The scripts to reproduce the acNMF analysis on simulated data can be found in the Simulated Data folder.  These should be run in the following order. <br><br>
-**Simulate.ipynb** Jupyter notebook modified from [cNMF publication](https://github.com/dylkot/cNMF/blob/master/Tutorials/analyze_simulated_example_data.ipynb)<br>
+**Simulate.ipynb** Jupyter notebook modified from [cNMF publication](https://github.com/dylkot/cNMF/blob/master/Tutorials/analyze_simulated_example_data.ipynb).<br>
 **acNMF_input.R** Convert file into acNMF compatable format<br>
 **cNMF_runscript and cnmf_v2.0.py** Modified [cNMF](https://github.com/dylkot/cNMF/tree/master) code that enables faster runtimes on HPC environments<br>
 **acNMF_output.R** Calculates Jaccard Similarity and plots results<br>
